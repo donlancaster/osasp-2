@@ -1,0 +1,3 @@
+G:/BSUIR/5 sem/OSaSP/Lab2 Main/cmake-build-debug/CMakeFiles/Lab2_Main.dir
+G:/BSUIR/5 sem/OSaSP/Lab2 Main/cmake-build-debug/CMakeFiles/edit_cache.dir
+G:/BSUIR/5 sem/OSaSP/Lab2 Main/cmake-build-debug/CMakeFiles/rebuild_cache.dir

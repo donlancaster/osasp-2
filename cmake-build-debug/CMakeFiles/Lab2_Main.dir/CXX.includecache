@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+G:/BSUIR/5 sem/OSaSP/Lab2 Main/TableReader.cpp
+TableReader.h
+G:/BSUIR/5 sem/OSaSP/Lab2 Main/TableReader.h
+
+G:/BSUIR/5 sem/OSaSP/Lab2 Main/TableReader.h
+vector
+-
+string
+-
+stdexcept
+-
+fstream
+-
+
+G:/BSUIR/5 sem/OSaSP/Lab2 Main/main.cpp
+Windows.h
+-
+vector
+-
+algorithm
+-
+TableReader.h
+G:/BSUIR/5 sem/OSaSP/Lab2 Main/TableReader.h
+

@@ -1,0 +1,3 @@
+"G:\Apps\Jetbrains\CLion 2020.3.3\bin\cmake\win\bin\cmake.exe" -E rm -f CMakeFiles\Lab2_Main.dir/objects.a
+G:\Apps\soft\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\mingw64\bin\ar.exe cr CMakeFiles\Lab2_Main.dir/objects.a @CMakeFiles\Lab2_Main.dir\objects1.rsp
+G:\Apps\soft\x86_64-8.1.0-release-posix-seh-rt_v6-rev0\mingw64\bin\g++.exe -g   -Wl,--whole-archive CMakeFiles\Lab2_Main.dir/objects.a -Wl,--no-whole-archive  -o Lab2_Main.exe -Wl,--out-implib,libLab2_Main.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\Lab2_Main.dir\linklibs.rsp
