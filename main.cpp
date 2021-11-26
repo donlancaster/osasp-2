@@ -1,7 +1,9 @@
 #include <Windows.h>
 #include <vector>
 #include <algorithm>
-#include "TableReader.h"
+#include <string>
+#include <stdexcept>
+#include <fstream>
 
 char filePath[256] = R"(G:\BSUIR\5 sem\OSaSP\Lab2 Main\file.txt)";
 using StringTable = std::vector<std::vector<std::string>>;
@@ -9,6 +11,7 @@ StringTable text;
 std::vector<size_t> maxRowHeights;
 size_t windowWidth;
 size_t windowHeight;
+LOGFONT logFont;
 
 size_t sum(const std::vector<size_t> &vect);
 
@@ -20,7 +23,9 @@ void RedrawDrawAreaBackground(HDC hDC);
 
 void DrawTable(HDC hdc);
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+std::vector<std::vector<std::string>> getText();
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
 int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -61,14 +66,12 @@ int WINAPI WinMain(HINSTANCE hinstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 }
 
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
         case WM_CREATE: {
-            TableReader rd;
-            rd.setFilePath(filePath);
             try {
-                text = move(rd.getText());
-                InvalidateRect(hWnd, NULL, TRUE);
+                text = move(getText());
+                InvalidateRect(hWnd, NULL, TRUE);//добавляет прямоугольник к обновляемому региону заданного окна. Обновляемый регион представляет часть рабочей области окна, которая должна быть перерисована.
             }
             catch (...) {
                 MessageBox(hWnd, "error reading file", "error", MB_ICONERROR);
@@ -93,11 +96,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             break;
         }
     }
-    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    return DefWindowProc(hWnd, msg, wParam, lParam);
 }
-
-
-
 
 void DrawTableText(HDC hDC) {
     const size_t rows = text.size();
@@ -108,7 +108,7 @@ void DrawTableText(HDC hDC) {
     size_t fontSize = 1;
     RECT rect = {0, 0, columnWidth, columnWidth};
     HFONT font;
-    static LOGFONT logFont;
+
     logFont.lfHeight = fontSize;
     font = CreateFontIndirect(&logFont);
     HFONT oldFont = (HFONT) SelectObject(hDC, font);
@@ -116,7 +116,6 @@ void DrawTableText(HDC hDC) {
     bool biggestFontNotFound = true;
 
     while (biggestFontNotFound) {
-
         for (size_t i = 0; i < rows; ++i) {
             for (size_t j = 0; j < columns; ++j) {
                 rect = {0, 0, columnWidth, columnWidth};
@@ -146,7 +145,6 @@ void DrawTableText(HDC hDC) {
     oldFont = (HFONT) SelectObject(hDC, font);
 
     std::vector<size_t> heights(columns);
-
     while (true) {
         for (size_t i = 0; i < rows; ++i) {
             for (size_t j = 0; j < columns; ++j) {
@@ -159,9 +157,10 @@ void DrawTableText(HDC hDC) {
             maxRowHeights[i] = heights[heights.size() - 1];
         }
         size_t sum = 0;
-        for (auto &it : maxRowHeights) {
-            sum += it;
+        for (auto &height : maxRowHeights) {
+            sum += height;
         }
+
         if (sum < windowHeight) break;
 
         fontSize -= 1;
@@ -188,7 +187,9 @@ void DrawTableText(HDC hDC) {
         cell.top += additionalHeight;
     }
     font = (HFONT) SelectObject(hDC, oldFont);
-    if (font) DeleteObject(font);
+    if (font) {
+        DeleteObject(font);
+    }
 }
 
 size_t sum(const std::vector<size_t> &vect) {
@@ -198,12 +199,6 @@ size_t sum(const std::vector<size_t> &vect) {
 }
 
 void DrawLines(HDC hDC) {
-//    if (windowWidth < 20) return;
-//    if (windowHeight < 20) return;
-    size_t wholeHeight = 0;
-    for (auto &it : maxRowHeights) {
-        wholeHeight += it;
-    }
     size_t columns = text[0].size();
     size_t rows = text.size();
     size_t columnWidth = windowWidth / columns;
@@ -215,10 +210,10 @@ void DrawLines(HDC hDC) {
     }
 
     size_t changingY = 0;
-    long additional_height = (windowHeight - sum(maxRowHeights)) / maxRowHeights.size();
+    long additional = (windowHeight - sum(maxRowHeights)) / maxRowHeights.size();
     for (size_t i = 0; i < rows; ++i) {
         changingY += maxRowHeights[i];
-        changingY += additional_height;
+        changingY += additional;
         MoveToEx(hDC, 0, changingY, NULL);
         LineTo(hDC, windowWidth, changingY);
     }
@@ -226,7 +221,8 @@ void DrawLines(HDC hDC) {
 
 void RedrawDrawAreaBackground(HDC hDC) {
     RECT rect;
-    SetRect(&rect, 0, 0, windowWidth, windowHeight);
+    SetRect(&rect, 0, 0, windowWidth,
+            windowHeight);// устанавливает координаты заданного прямоугольника. Это эквивалентно назначению левого, верхнего, правого и нижнего параметров соответствующим членам структуры RECT.
     FillRect(hDC, &rect, (HBRUSH) (WHITE_BRUSH));
 }
 
@@ -238,9 +234,26 @@ void DrawTable(HDC hdc) {
     RedrawDrawAreaBackground(hMemDC);
     DrawTableText(hMemDC);
     DrawLines(hMemDC);
-
-
     BitBlt(hdc, 0, 0, windowWidth, windowHeight, hMemDC, 0, 0, SRCCOPY);
     DeleteDC(hMemDC);
     DeleteObject(memBM);
+}
+
+std::vector<std::vector<std::string>> getText() {
+    std::ifstream in(filePath);
+    size_t N, M;
+    in >> N >> M;
+    std::vector<std::vector<std::string>> result_matrix;
+    result_matrix.resize(N);
+    for (auto& it : result_matrix) it.resize(M);
+
+    for (size_t i = 0; i < N; ++i) {
+        for (size_t j = 0; j < M; ++j) {
+            getline(in, result_matrix[i][j], ';');
+            size_t index = result_matrix[i][j].find('\n');
+            if (index < result_matrix[i][j].length()) result_matrix[i][j].erase(index, 1);
+        }
+    }
+
+    return result_matrix;
 }
